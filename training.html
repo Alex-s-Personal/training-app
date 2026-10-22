@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Training" />
+  <meta name="theme-color" content="#0a0a0a" />
+  <title>Alex's Training</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+    body { font-family: -apple-system, 'Inter', 'Helvetica Neue', sans-serif; background: #0a0a0a; color: #e8e8e8; min-height: 100vh; min-height: -webkit-fill-available; }
+    html { height: -webkit-fill-available; }
+
+    #app { display: flex; flex-direction: column; min-height: 100vh; min-height: -webkit-fill-available; }
+
+    /* Header */
+    #header { background: #0f0f0f; border-bottom: 1px solid #1a1a1a; padding: env(safe-area-inset-top, 20px) 16px 0; padding-top: max(env(safe-area-inset-top), 20px); position: sticky; top: 0; z-index: 100; }
+    #header-top { padding-bottom: 14px; }
+    .header-eyebrow { font-size: 10px; letter-spacing: 0.2em; color: #444; text-transform: uppercase; margin-bottom: 3px; }
+    .header-title { font-size: 20px; font-weight: 800; letter-spacing: -0.03em; color: #f0f0f0; margin-bottom: 2px; }
+    .header-sub { font-size: 11px; color: #444; }
+
+    /* Day tabs */
+    #day-tabs { display: flex; gap: 3px; overflow-x: hidden; }
+    .day-tab { flex: 1; min-width: 0; padding: 10px 4px 8px; border: none; border-radius: 8px 8px 0 0; background: #161616; color: #555; font-weight: 700; font-size: 11px; letter-spacing: 0.05em; cursor: pointer; text-align: center; transition: background 0.15s, color 0.15s; border-top: 2px solid transparent; }
+    .day-tab.active { color: #fff; }
+    .day-tab-emoji { font-size: 14px; margin-top: 2px; }
+
+    /* Main content */
+    #content { padding: 18px 16px; max-width: 700px; margin: 0 auto; padding-bottom: calc(env(safe-area-inset-bottom) + 24px); flex: 1; }
+
+    /* Day header */
+    .day-tag { font-size: 10px; letter-spacing: 0.15em; font-weight: 800; text-transform: uppercase; margin-bottom: 6px; }
+    .day-title { font-size: 24px; font-weight: 900; letter-spacing: -0.03em; margin-bottom: 8px; line-height: 1.1; }
+    .day-title span { color: #333; font-weight: 400; }
+    .day-why { color: #666; font-size: 12px; line-height: 1.6; margin-bottom: 18px; }
+
+    /* Back note */
+    .back-note { background: #110a00; border: 1px solid rgba(245,158,11,0.2); border-left: 3px solid #f59e0b; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: 11px; color: #886633; line-height: 1.5; }
+    .back-note-label { color: #f59e0b; font-weight: 800; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; }
+
+    /* Sections */
+    .section { margin-bottom: 12px; }
+    .section-header { width: 100%; background: none; border: none; cursor: pointer; padding: 4px 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .section-header-left { display: flex; align-items: center; gap: 8px; }
+    .section-bar { width: 3px; height: 16px; border-radius: 2px; flex-shrink: 0; }
+    .section-title { font-size: 12px; font-weight: 700; color: #ccc; text-align: left; }
+    .section-badge { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; padding: 2px 6px; border-radius: 4px; }
+    .section-chevron { font-size: 11px; color: #444; transition: transform 0.2s; }
+    .section-note { font-size: 11px; color: #555; margin-bottom: 8px; padding-left: 11px; font-style: italic; line-height: 1.5; }
+
+    /* Exercise table */
+    .ex-col-headers { display: grid; gap: 8px; padding: 0 14px 6px; }
+    .ex-col-headers.trackable { grid-template-columns: 1fr 80px 100px; }
+    .ex-col-headers.standard { grid-template-columns: 1fr auto; }
+    .col-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: #333; }
+    .col-label.accent { }
+
+    .ex-list { background: #111; border-radius: 10px; border: 1px solid #1a1a1a; overflow: hidden; }
+    .ex-row { display: grid; gap: 8px; padding: 11px 14px; align-items: center; border-bottom: 1px solid #161616; }
+    .ex-row:last-child { border-bottom: none; }
+    .ex-row.trackable { grid-template-columns: 1fr 80px 100px; }
+    .ex-row.standard { grid-template-columns: 1fr auto; }
+    .ex-name { font-size: 13px; font-weight: 600; color: #ddd; }
+    .ex-note-text { font-size: 11px; color: #555; line-height: 1.4; margin-top: 3px; }
+    .sets-badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 6px; white-space: nowrap; text-align: center; display: inline-block; }
+
+    /* Weight input */
+    .weight-cell { text-align: center; }
+    .weight-btn { border-radius: 6px; font-size: 12px; font-weight: 400; padding: 4px 8px; cursor: pointer; width: 100%; min-height: 30px; transition: all 0.15s; border-width: 1px; border-style: solid; }
+    .weight-btn.empty { background: #1a1a1a; border-color: #2a2a2a; color: #444; }
+    .weight-btn.filled { font-weight: 700; }
+    .weight-input-wrap { display: flex; gap: 4px; align-items: center; justify-content: center; }
+    .weight-input { width: 62px; font-size: 12px; background: #1a1a1a; border-radius: 6px; color: #fff; padding: 5px 6px; text-align: center; outline: none; border-width: 1px; border-style: solid; -webkit-appearance: none; }
+    .weight-save-btn { border: none; border-radius: 6px; color: #fff; font-weight: 800; font-size: 14px; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .track-hint { font-size: 10px; color: #333; margin-top: 5px; padding-left: 4px; font-style: italic; }
+
+    /* Week grid */
+    .week-section { margin-top: 28px; border-top: 1px solid #161616; padding-top: 20px; }
+    .section-eyebrow { font-size: 10px; color: #333; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 10px; }
+    .week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+    .week-btn { border-radius: 8px; padding: 10px 4px; cursor: pointer; text-align: center; transition: all 0.15s; border-width: 1px; border-style: solid; }
+    .week-btn-day { font-size: 9px; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 4px; }
+    .week-btn-emoji { font-size: 15px; }
+    .week-btn-label { font-size: 8px; margin-top: 3px; line-height: 1.2; }
+
+    /* Principles */
+    .principles { margin-top: 20px; background: #0f0f0f; border: 1px solid #1a1a1a; border-radius: 12px; padding: 18px 16px; }
+    .principle { padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid #161616; }
+    .principle:last-child { padding-bottom: 0; margin-bottom: 0; border-bottom: none; }
+    .principle-title { font-size: 12px; font-weight: 700; color: #aaa; margin-bottom: 3px; }
+    .principle-note { font-size: 12px; color: #555; line-height: 1.6; }
+
+    .hidden { display: none; }
+
+    /* Edit mode */
+    .edit-toggle { border: none; border-radius: 8px; font-size: 11px; font-weight: 700; padding: 6px 14px; cursor: pointer; transition: all 0.15s; letter-spacing: 0.05em; }
+    .edit-toggle.off { background: #1a1a1a; color: #555; }
+    .edit-toggle.on { background: #f59e0b; color: #000; }
+    .edit-banner { background: #110f00; border: 1px solid #f59e0b44; border-radius: 8px; padding: 8px 12px; margin-bottom: 14px; font-size: 11px; color: #886633; }
+    /* Editable fields for habits, notes, principles */
+    .editable-wrap { position: relative; }
+    .editable-tap { position: absolute; top: 6px; right: 6px; background: none; border: none; color: #333; font-size: 12px; cursor: pointer; padding: 2px 4px; }
+    .editable-tap:active { color: #f59e0b; }
+    .editable-textarea { width: 100%; background: #111; border: 1px solid #f59e0b; border-radius: 6px; color: #e8e8e8; font-size: 11px; padding: 7px 10px; outline: none; -webkit-appearance: none; font-family: inherit; resize: none; line-height: 1.5; margin-top: 6px; }
+    .principle-edit-wrap { position: relative; padding-right: 24px; }
+    .principle-textarea { width: 100%; background: #0f0f0f; border: 1px solid #f59e0b; border-radius: 6px; color: #888; font-size: 12px; padding: 6px 8px; outline: none; -webkit-appearance: none; font-family: inherit; resize: none; line-height: 1.6; margin-top: 4px; }
+    .ex-row.editing { grid-template-columns: 1fr !important; gap: 6px !important; padding: 12px 14px !important; background: #131313; }
+    .edit-field-label { font-size: 9px; color: #444; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 3px; }
+    .edit-input { width: 100%; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 6px; color: #e8e8e8; font-size: 12px; padding: 7px 10px; outline: none; -webkit-appearance: none; font-family: inherit; }
+    .edit-input:focus { border-color: #f59e0b; }
+    .edit-input.sets { width: 120px; }
+    .edit-actions { display: flex; gap: 6px; margin-top: 4px; }
+    .edit-save-btn { background: #22c55e; border: none; border-radius: 6px; color: #000; font-size: 11px; font-weight: 800; padding: 6px 14px; cursor: pointer; }
+    .edit-cancel-btn { background: #1a1a1a; border: none; border-radius: 6px; color: #666; font-size: 11px; font-weight: 700; padding: 6px 14px; cursor: pointer; }
+    .delete-btn { background: none; border: none; color: #444; font-size: 16px; cursor: pointer; padding: 0 4px; line-height: 1; flex-shrink: 0; }
+    .delete-btn:active { color: #ef4444; }
+    .edit-ex-row { display: flex; align-items: center; gap: 8px; }
+    .edit-ex-info { flex: 1; min-width: 0; }
+    .pencil-btn { background: none; border: none; color: #333; font-size: 13px; cursor: pointer; padding: 0 4px; flex-shrink: 0; }
+    .pencil-btn:active { color: #f59e0b; }
+    .add-ex-btn { width: 100%; background: #111; border: 1px dashed #2a2a2a; border-radius: 8px; color: #444; font-size: 12px; font-weight: 600; padding: 10px; cursor: pointer; margin-top: 6px; transition: all 0.15s; }
+    .add-ex-btn:active { border-color: #f59e0b; color: #f59e0b; }
+    .adding-row { background: #131313; border: 1px solid #2a2a2a; border-radius: 8px; padding: 12px 14px; margin-top: 6px; }
+    .adding-row .edit-input:focus { border-color: #22c55e; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div id="header-top" style="display:flex;align-items:flex-start;justify-content:space-between;">
+      <div>
+        <div class="header-eyebrow">Personalised Training Plan</div>
+        <div class="header-title">Alex's Programme</div>
+        <div class="header-sub">3× Full Body · Zone 2 · Hyrox Foundation</div>
+      </div>
+      <button class="edit-toggle off" id="edit-btn" onclick="toggleEditMode()" style="margin-top:4px;flex-shrink:0;">Edit</button>
+    </div>
+    <div id="day-tabs"></div>
+  </div>
+  <div id="content"></div>
+</div>
+
+<script>
+const ACCENT = {
+  push:    "#3b82f6",
+  pull:    "#8b5cf6",
+  legs:    "#f59e0b",
+  run_z2:  "#22c55e",
+  run_int: "#ef4444",
+  mobility:"#06b6d4",
+  rest:    "#475569",
+};
+const TRACKABLE_TYPES = ["push", "pull", "legs"];
+
+const WARMUP = {title:"Warm-up (8 min)",note:"Every session. This is your mobility work now, so do not skip it.",exercises:[
+  {name:"Weight-Bearing Wrist Rocks",sets:"2×20s",note:"Hands flat on the floor, rock slowly forward and back."},
+  {name:"Shoulder Dislocates",sets:"2×10",note:"Band or broomstick, wide grip, slow."},
+  {name:"Cat-Cow",sets:"1×8",note:"One vertebra at a time. Settles the back."},
+  {name:"Hip 90/90 Switches",sets:"1×10",note:"Rotate between internal and external rotation."},
+  {name:"Deep Squat Hold",sets:"2×30s",note:"Heels flat, chest up."},
+  {name:"Scap Pull-ups",sets:"1×8",note:"Straight arms. Depress and elevate the shoulders only."},
+]};
+const COOLDOWN = {title:"Cool-down (6 min)",note:"Back prehab first, then stretch while warm.",exercises:[
+  {name:"Back Extensions",sets:"2×10",note:"Controlled. Do not hyperextend at the top."},
+  {name:"Hamstring Toe Touch Hold",sets:"45s",note:"Hold and breathe, no bouncing."},
+  {name:"Hip Flexor Lunge",sets:"45s each",note:"Squeeze the glute of the back leg."},
+  {name:"Pigeon Pose",sets:"45s each",note:""},
+  {name:"Calf Stretch",sets:"30s each",note:"Straight knee, then bent knee."},
+]};
+const clone = s => JSON.parse(JSON.stringify(s));
+
+const schedule = [
+  {
+    day:"Monday",label:"Full Body A",short:"Push",type:"push",tag:"Full Body · Push Lead",emoji:"↑",
+    why:"Planche work first while your shoulders are fresh. Circuit finisher last.",
+    backNote:"If the back niggles, lighten the goblet squat and keep everything else. Never push through spinal pain.",
+    sections:[
+      clone(WARMUP),
+      {title:"Skill Block (10 min)",note:"Rest 90s between sets. Quality over volume.",exercises:[
+        {name:"Tuck Planche Hold (Parallel Bars)",sets:"3×20s",note:"Neutral grip, no wrist pain. Depress and protract the shoulders."},
+        {name:"Pseudo Planche Press-ups",sets:"3×8",note:"Lean well forward, protract at the top of every rep."},
+      ]},
+      {title:"Strength Block (25 min)",note:"Rest 2 min between sets. Listed sets are working sets; add one warm-up set before the press.",trackable:true,exercises:[
+        {name:"Incline DB Press",sets:"3×8",note:"Lowest incline. Build toward 32.5kg."},
+        {name:"Single Arm DB Row",sets:"3×10 each",note:"Brace on the bench. 24 to 28kg."},
+        {name:"Goblet Squat",sets:"3×10",note:"Elbows inside knees. Stop the set if your back rounds."},
+        {name:"Hanging Oblique Knee Raises",sets:"3×8 each side",note:"Drive knees towards one elbow, alternate sides. No swinging."},
+      ]},
+      {title:"Circuit Finisher (10 min)",note:"2 rounds, minimal rest between stations. 2 min rest between rounds.",trackable:true,exercises:[
+        {name:"Tuck Burpees",sets:"×12",note:""},
+        {name:"DB Farmers Carry",sets:"50m",note:"2×24kg (Hyrox Open). Progress to 2×32kg."},
+        {name:"DB Walking Lunges",sets:"×20",note:"2×10kg. Progress to 2×15kg once both rounds hold form."},
+        {name:"Skip",sets:"1 min",note:"Shadow skip if no rope."},
+      ]},
+      clone(COOLDOWN),
+    ]
+  },
+  {
+    day:"Tuesday",label:"Interval Run",short:"Intervals",type:"run_int",tag:"Optional · Speed",emoji:"⚡",
+    why:"Optional. Skip it without guilt if the week is busy; Sunday's run is the one that matters.",
+    backNote:"If the back is acutely bad, walk instead.",
+    sections:[
+      {title:"Run Warm-up (12 min)",note:"",exercises:[
+        {name:"Easy Jog",sets:"10 min",note:"HR under 141bpm."},
+        {name:"Dynamic Leg Swings",sets:"2×10 each",note:"Front to back, then side to side."},
+        {name:"Strides",sets:"4×50m",note:"Build to 80% pace."},
+      ]},
+      {title:"Main Run (20 to 25 min)",note:"Alternate tempo and hills week to week.",exercises:[
+        {name:"Week A: Tempo Run",sets:"20 min",note:"156 to 172bpm. Comfortably hard."},
+        {name:"Week B: Hill Repeats",sets:"6–8×30s",note:"Hard uphill, walk down as recovery."},
+        {name:"Daylight Option: 100m Sprints",sets:"4–6×100m",note:"100% effort, 5+ min full recovery. Only when it is light."},
+      ]},
+      {title:"Post-Run Stretch (5 min)",note:"",exercises:[
+        {name:"Hamstring Toe Touch Hold",sets:"45s",note:""},
+        {name:"Hip Flexor Lunge",sets:"45s each",note:""},
+        {name:"Calf Stretch",sets:"30s each",note:"Straight knee, then bent knee."},
+      ]},
+    ]
+  },
+  {
+    day:"Wednesday",label:"Full Body B",short:"Pull",type:"pull",tag:"Full Body · Pull Lead",emoji:"↓",
+    why:"Pull skill first, then normal pull-ups before anything else tires your grip.",
+    backNote:"If the back niggles, lighten the RDL and keep the back extensions in the cool-down.",
+    sections:[
+      clone(WARMUP),
+      {title:"Skill Block (12 min)",note:"Rest 2 min between sets.",exercises:[
+        {name:"Explosive Pull-ups to Sternum",sets:"5×2",note:"Maximum speed every rep. Stop if the bar height drops."},
+        {name:"Tuck Front Lever Hold",sets:"3×20s",note:"Straight arms, pull the bar towards your hips, flat back."},
+        {name:"Tuck Planche to Frog Stand Entries",sets:"2×5",note:"Drive hips up and knees forward onto the elbows. Practise the entry, not the hold."},
+      ]},
+      {title:"Strength Block (28 min)",note:"Rest 2 min between sets. Pull-ups first, while fresh.",trackable:true,exercises:[
+        {name:"Pull-ups",sets:"3×8",note:"Full hang to chin over bar. Add weight once all 3 sets of 8 are clean."},
+        {name:"Weighted Dips",sets:"3×8",note:"DB between the legs. Bodyweight only if the back niggles."},
+        {name:"DB Romanian Deadlift",sets:"3×10",note:"Both legs, light. Feel it in the hamstrings, not the lower back."},
+        {name:"Prone DB Face Pulls",sets:"3×12",note:"Face down on the incline bench, pull into a W. Superset with hammer curls."},
+        {name:"Seated Hammer Curls",sets:"3×12",note:"14.5kg. Straight after the face pulls, then rest."},
+        {name:"Hollow Body Hold",sets:"3×30s",note:"Lower back pressed into the floor. Reset if it lifts."},
+      ]},
+      clone(COOLDOWN),
+    ]
+  },
+  {
+    day:"Thursday",label:"Rest",short:"Rest",type:"rest",tag:"Recovery",emoji:"◯",
+    why:"No training. Adaptation happens here.",
+    backNote:"",
+    sections:[
+      {title:"Recovery (Optional)",note:"",exercises:[
+        {name:"Easy Walk",sets:"20–30 min",note:"Below 126bpm."},
+      ]},
+    ]
+  },
+  {
+    day:"Friday",label:"Full Body C",short:"Legs",type:"legs",tag:"Full Body · Legs Lead",emoji:"◈",
+    why:"Legs lead. Handstand and front lever kept short so the leg work gets your best effort.",
+    backNote:"If the back niggles, reduce split squat load before reducing range.",
+    sections:[
+      clone(WARMUP),
+      {title:"Skill Block (14 min)",note:"Rest 90s between sets.",exercises:[
+        {name:"Wall Handstand Hold",sets:"3×30s",note:"Fingers spread, push tall through the shoulders."},
+        {name:"Pike Press-ups (Feet Elevated)",sets:"3×8",note:"Higher feet means harder. Progressing toward wall HSPU."},
+        {name:"Tuck Front Lever Raises",sets:"3×5",note:"Dead hang to tuck lever. Slow and controlled."},
+      ]},
+      {title:"Strength Block (30 min)",note:"Rest 2 min between sets.",trackable:true,exercises:[
+        {name:"Bulgarian Split Squat",sets:"3×8 each",note:"Rear foot on the bench. DBs at your sides."},
+        {name:"Single Leg RDL",sets:"3×10 each",note:"8 to 10kg. Hips square, slow on the way down."},
+        {name:"Chin-ups",sets:"3×8",note:"Bodyweight. Full range."},
+        {name:"Single Leg Calf Raises",sets:"3×15 each",note:"On a step, full range. Superset with lateral raises."},
+        {name:"DB Lateral Raises",sets:"3×15",note:"10kg. Straight after the calf raises, then rest. No swinging."},
+        {name:"Side Plank Hip Dips",sets:"3×12 each side",note:"Pause briefly at the top of each rep."},
+      ]},
+      clone(COOLDOWN),
+    ]
+  },
+  {
+    day:"Saturday",label:"Rest",short:"Rest",type:"rest",tag:"Recovery",emoji:"◯",
+    why:"No training. Fresh legs for tomorrow's long run.",
+    backNote:"",
+    sections:[
+      {title:"Recovery (Optional)",note:"",exercises:[
+        {name:"Easy Walk",sets:"20–30 min",note:"Below 126bpm."},
+      ]},
+    ]
+  },
+  {
+    day:"Sunday",label:"Long Zone 2 Run",short:"Zone 2",type:"run_z2",tag:"Fixed · Aerobic Base",emoji:"→",
+    why:"Fixed session. Your aerobic base is the weakest link, and the weekend gives you daylight.",
+    backNote:"If the back is acutely bad, walk the same duration instead.",
+    sections:[
+      {title:"Run Prep (5 min)",note:"",exercises:[
+        {name:"Ankle Circles",sets:"2×10 each",note:"Both directions."},
+        {name:"Calf Stretch",sets:"2×30s each",note:"Straight knee, then bent knee."},
+        {name:"Easy Walk",sets:"5 min",note:"Before you start running."},
+      ]},
+      {title:"Zone 2 Run (45 to 60 min)",note:"141 to 156bpm. Nasal breathing is your guide.",exercises:[
+        {name:"Steady Run",sets:"45–60 min",note:"Flat route. If HR passes 156bpm, slow down or walk briefly."},
+      ]},
+      {title:"Post-Run Stretch (6 min)",note:"",exercises:[
+        {name:"Hamstring Toe Touch Hold",sets:"45s",note:""},
+        {name:"Hip Flexor Lunge",sets:"45s each",note:""},
+        {name:"Pigeon Pose",sets:"45s each",note:""},
+        {name:"Calf Stretch",sets:"30s each",note:""},
+      ]},
+    ]
+  },
+];
+
+const PRINCIPLES = [
+  ["Skill Before Strength","Skill blocks always come first. Tired muscles cannot build motor patterns."],
+  ["The 30 Minute Floor Version","Short on time? Warm-up, skill block and the first strength exercise, then stop. That still counts as a session."],
+  ["Sunday is Fixed, Tuesday is Optional","Your aerobic base is the weakest link. Skip Tuesday if you must; never skip Sunday."],
+  ["Warm-up and Cool-down are the Mobility Work","There is no separate mobility day. Skip these and your tightness caps your skill progress."],
+  ["Progressive Overload","Log your weights. When every rep of every set feels solid, add 2.5kg and update the log."],
+];
+
+// ── State ──────────────────────────────────────────────────────────────
+let activeDay = ((new Date().getDay() + 6) % 7);
+let expandedSections = {};
+let editMode = false;
+let editingEx = null;   // {si, ei} currently open inline editor
+let addingTo = null;    // si of section currently adding to
+let dragState = null;   // drag/reorder state
+
+// Custom overrides saved per exercise: lsKey → {name,sets,note}
+// Deleted exercises: delKey → true
+// Extra exercises: addKey → [{name,sets,note},...]
+// Order overrides: ordKey → [ei, ei, ei, ...]  (indices into merged list)
+
+function lsKey(di,si,ei)  { return `ex_${di}_${si}_${ei}`; }
+function delKey(di,si,ei) { return `del_${di}_${si}_${ei}`; }
+function addKey(di,si)    { return `add_${di}_${si}`; }
+function ordKey(di,si)    { return `ord_${di}_${si}`; }
+function wtKey(di,si,ei)  { return `wt_${di}_${si}_${ei}`; }
+function backNoteKey(di)  { return `backnote_${di}`; }
+function secNoteKey(di,si){ return `secnote_${di}_${si}`; }
+function princKey(pi)     { return `princ_${pi}`; }
+
+const NS = 'v2_';
+function lsGet(k)      { try { return localStorage.getItem(NS+k); } catch(e){ return null; } }
+function lsSet(k,v)    { try { localStorage.setItem(NS+k,v); } catch(e){} }
+function lsDel(k)      { try { localStorage.removeItem(NS+k); } catch(e){} }
+
+// Build the merged exercise list for a section, applying overrides + order
+function sectionExercises(di, si) {
+  const sec = schedule[di].sections[si];
+  // Base exercises (excluding deleted)
+  let base = sec.exercises.map((ex, ei) => {
+    if (lsGet(delKey(di,si,ei))) return null;
+    const over = lsGet(lsKey(di,si,ei));
+    if (over) { try { return {...ex, ...JSON.parse(over), _ei: ei}; } catch(e){} }
+    return {...ex, _ei: ei};
+  }).filter(Boolean);
+
+  // Added exercises (appended)
+  const added = lsGet(addKey(di,si));
+  let extras = [];
+  if (added) { try { extras = JSON.parse(added).map((ex,i) => ({...ex, _ei: 10000+i})); } catch(e){} }
+
+  let all = [...base, ...extras];
+
+  // Apply order override
+  const ord = lsGet(ordKey(di,si));
+  if (ord) {
+    try {
+      const order = JSON.parse(ord);
+      const mapped = order.map(id => all.find(e => e._ei === id)).filter(Boolean);
+      // Append any not in order (safety)
+      const inOrd = new Set(order);
+      const rest = all.filter(e => !inOrd.has(e._ei));
+      all = [...mapped, ...rest];
+    } catch(e){}
+  }
+  return all;
+}
+
+function saveOrder(di, si, exList) {
+  lsSet(ordKey(di,si), JSON.stringify(exList.map(e => e._ei)));
+}
+
+function typeAccent(type) { return ACCENT[type] || "#888"; }
+
+// ── Render ─────────────────────────────────────────────────────────────
+function render() { renderTabs(); renderContent(); }
+
+function renderTabs() {
+  const tabs = document.getElementById('day-tabs');
+  tabs.innerHTML = '';
+  schedule.forEach((d,i) => {
+    const a = typeAccent(d.type);
+    const active = i === activeDay;
+    const btn = document.createElement('button');
+    btn.className = 'day-tab' + (active?' active':'');
+    btn.style.background = active ? a : '#161616';
+    btn.style.borderTopColor = active ? a : 'transparent';
+    btn.innerHTML = `<div>${d.day.slice(0,3).toUpperCase()}</div><div class="day-tab-emoji">${d.emoji}</div>`;
+    btn.onclick = () => { activeDay=i; expandedSections={}; editingEx=null; addingTo=null; render(); };
+    tabs.appendChild(btn);
+  });
+  const btn = document.getElementById('edit-btn');
+  if (btn) { btn.className = 'edit-toggle ' + (editMode?'on':'off'); btn.textContent = editMode?'Done':'Edit'; }
+}
+
+function renderContent() {
+  const d = schedule[activeDay];
+  const accent = typeAccent(d.type);
+  const trackable = TRACKABLE_TYPES.includes(d.type);
+  const content = document.getElementById('content');
+  let html = '';
+
+  html += `<div class="day-tag" style="color:${accent}">${d.tag}</div>`;
+  html += `<div class="day-title">${d.day}<span> · </span>${d.label}</div>`;
+  html += `<div class="day-why">${d.why}</div>`;
+
+  const backNoteVal = lsGet(backNoteKey(activeDay)) || d.backNote;
+  if (backNoteVal || editMode) {
+    if (editMode) {
+      html += `<div class="back-note editable-wrap">
+        <span class="back-note-label">Back Note · </span>
+        <span id="backnote_${activeDay}_display">${backNoteVal||'Tap ✎ to add a back note'}</span>
+        <button class="editable-tap" onclick="startFieldEdit('backnote_${activeDay}')">✎</button>
+        <div id="backnote_${activeDay}_edit" style="display:none">
+          <textarea class="editable-textarea" id="backnote_${activeDay}_ta" rows="2">${esc(backNoteVal||'')}</textarea>
+          <div class="edit-actions"><button class="edit-save-btn" onclick="saveField('backnote','${activeDay}','backnote_${activeDay}_ta')">Save</button><button class="edit-cancel-btn" onclick="cancelFieldEdit('backnote_${activeDay}')">Cancel</button></div>
+        </div>
+      </div>`;
+    } else if (backNoteVal) {
+      html += `<div class="back-note"><span class="back-note-label">Back Note · </span>${backNoteVal}</div>`;
+    }
+  }
+
+  if (editMode) html += `<div class="edit-banner">✏️ Edit mode: tap ✎ to edit, ☰ to drag and reorder, ✕ to delete</div>`;
+
+  // Sections
+  d.sections.forEach((sec, si) => {
+    const secKey = `${activeDay}-${si}`;
+    const expanded = expandedSections[secKey] !== false;
+    const isTrack = trackable && sec.trackable;
+    const exList = sectionExercises(activeDay, si);
+
+    html += `<div class="section">`;
+    html += `<button class="section-header" onclick="toggleSection('${secKey}')">
+      <div class="section-header-left">
+        <div class="section-bar" style="background:${accent}"></div>
+        <span class="section-title">${sec.title}</span>
+        ${isTrack ? `<span class="section-badge" style="color:${accent};background:${accent}20">LOGGED</span>` : ''}
+      </div>
+      <span class="section-chevron">${expanded?'▲':'▼'}</span>
+    </button>`;
+
+    if (expanded) {
+      const secNoteVal = lsGet(secNoteKey(activeDay,si)) || sec.note || '';
+      if (editMode) {
+        html += `<div class="editable-wrap" style="margin-bottom:8px;padding-right:28px;">
+          <div id="secnote_${activeDay}_${si}_display" style="font-size:11px;color:#555;font-style:italic;line-height:1.5;">${secNoteVal||'<span style=\'color:#333\'>Tap ✎ to add a note</span>'}</div>
+          <button class="editable-tap" onclick="startFieldEdit('secnote_${activeDay}_${si}')">✎</button>
+          <div id="secnote_${activeDay}_${si}_edit" style="display:none">
+            <textarea class="editable-textarea" id="secnote_${activeDay}_${si}_ta" rows="3">${esc(secNoteVal)}</textarea>
+            <div class="edit-actions"><button class="edit-save-btn" onclick="saveField('secnote','${activeDay}_${si}','secnote_${activeDay}_${si}_ta')">Save</button><button class="edit-cancel-btn" onclick="cancelFieldEdit('secnote_${activeDay}_${si}')">Cancel</button></div>
+          </div>
+        </div>`;
+      } else if (secNoteVal) {
+        html += `<div class="section-note">${secNoteVal}</div>`;
+      }
+
+      if (isTrack && !editMode) {
+        html += `<div class="ex-col-headers trackable">
+          <div class="col-label">Exercise</div>
+          <div class="col-label" style="text-align:center">Sets</div>
+          <div class="col-label" style="color:${accent};text-align:center">Your Weight</div>
+        </div>`;
+      }
+
+      html += `<div class="ex-list" id="exlist_${si}">`;
+
+      exList.forEach((ex, listIdx) => {
+        const ei = ex._ei;
+        const isEditingThis = editMode && editingEx && editingEx.si===si && editingEx.listIdx===listIdx;
+        const wtk = wtKey(activeDay, si, listIdx);
+        const saved = lsGet(wtk);
+
+        if (isEditingThis) {
+          // Inline editor row
+          html += `<div class="ex-row editing">
+            <div>
+              <div class="edit-field-label">Exercise Name</div>
+              <input class="edit-input" id="ename_${si}_${listIdx}" value="${esc(ex.name)}" placeholder="Exercise name" />
+            </div>
+            <div>
+              <div class="edit-field-label">Sets / Reps / Duration</div>
+              <input class="edit-input sets" id="esets_${si}_${listIdx}" value="${esc(ex.sets)}" placeholder="e.g. 3×10" />
+            </div>
+            <div>
+              <div class="edit-field-label">Coaching Note</div>
+              <input class="edit-input" id="enote_${si}_${listIdx}" value="${esc(ex.note||'')}" placeholder="Optional note" />
+            </div>
+            <div class="edit-actions">
+              <button class="edit-save-btn" onclick="saveExEdit(${si},${listIdx},${ei})">Save</button>
+              <button class="edit-cancel-btn" onclick="cancelEdit()">Cancel</button>
+            </div>
+          </div>`;
+        } else if (editMode) {
+          // Edit mode view row
+          html += `<div class="ex-row standard" id="exrow_${si}_${listIdx}" draggable="false">
+            <div class="edit-ex-row">
+              <span class="drag-handle" style="color:#333;font-size:16px;cursor:grab;padding:0 6px 0 0;flex-shrink:0;"
+                ontouchstart="dragStart(event,${si},${listIdx})"
+                ontouchmove="dragMove(event)"
+                ontouchend="dragEnd(event,${si})">☰</span>
+              <div class="edit-ex-info">
+                <div class="ex-name">${esc(ex.name)}</div>
+                <div style="display:flex;gap:8px;align-items:center;margin-top:3px;">
+                  <span class="sets-badge" style="color:${accent};background:${accent}18;font-size:11px;font-weight:700;padding:2px 8px;border-radius:5px;">${esc(ex.sets)}</span>
+                </div>
+                ${ex.note ? `<div class="ex-note-text">${esc(ex.note)}</div>` : ''}
+              </div>
+              <button class="pencil-btn" onclick="startExEdit(${si},${listIdx})">✎</button>
+              <button class="delete-btn" onclick="deleteEx(${si},${listIdx},${ei})">✕</button>
+            </div>
+          </div>`;
+        } else {
+          // Normal view row
+          const isWtEditing = !editMode && isTrack && (window._wtEditing === wtk);
+          html += `<div class="ex-row ${isTrack?'trackable':'standard'}">`;
+          html += `<div><div class="ex-name">${esc(ex.name)}</div>${ex.note?`<div class="ex-note-text">${esc(ex.note)}</div>`:''}
+          </div>`;
+          html += `<div style="text-align:center"><span class="sets-badge" style="color:${accent};background:${accent}18">${esc(ex.sets)}</span></div>`;
+          if (isTrack) {
+            if (isWtEditing) {
+              html += `<div class="weight-cell"><div class="weight-input-wrap">
+                <input class="weight-input" id="wi_${wtk}" style="border-color:${accent}" value="${saved||''}" placeholder="e.g. 25kg" onkeydown="wtKeydown(event,'${wtk}')" />
+                <button class="weight-save-btn" style="background:${accent}" onclick="saveWt('${wtk}')">✓</button>
+              </div></div>`;
+            } else {
+              html += `<div class="weight-cell">
+                <button class="weight-btn ${saved?'filled':'empty'}"
+                  style="${saved?`color:${accent};background:${accent}25;border-color:${accent}`:''}"
+                  onclick="startWtEdit('${wtk}')">
+                  ${saved ? saved : '<span style="font-size:11px">+ log</span>'}
+                </button>
+              </div>`;
+            }
+          }
+          html += `</div>`;
+        }
+      });
+
+      html += `</div>`; // ex-list
+
+      // Add exercise button (edit mode)
+      if (editMode) {
+        if (addingTo === si) {
+          html += `<div class="adding-row">
+            <div class="edit-field-label">Exercise Name</div>
+            <input class="edit-input" id="add_name_${si}" placeholder="Exercise name" style="margin-bottom:6px;" />
+            <div class="edit-field-label">Sets / Reps / Duration</div>
+            <input class="edit-input sets" id="add_sets_${si}" placeholder="e.g. 3×10" style="margin-bottom:6px;" />
+            <div class="edit-field-label">Coaching Note (Optional)</div>
+            <input class="edit-input" id="add_note_${si}" placeholder="Optional note" style="margin-bottom:8px;" />
+            <div class="edit-actions">
+              <button class="edit-save-btn" onclick="confirmAdd(${si})">Add</button>
+              <button class="edit-cancel-btn" onclick="cancelAdd()">Cancel</button>
+            </div>
+          </div>`;
+        } else {
+          html += `<button class="add-ex-btn" onclick="startAdd(${si})">+ Add Exercise</button>`;
+        }
+      }
+
+      if (isTrack && !editMode) html += `<div class="track-hint">Tap any weight to edit · saved to your phone · when all reps feel solid, increase the weight and update</div>`;
+    }
+
+    html += `</div>`; // section
+  });
+
+  // Week grid
+  html += `<div class="week-section"><div class="section-eyebrow">Week at a Glance</div><div class="week-grid">`;
+  schedule.forEach((wd,wi) => {
+    const a = typeAccent(wd.type);
+    const active = wi===activeDay;
+    const label = wd.short;
+    html += `<button class="week-btn" style="background:${active?a:'#111'};border-color:${active?a:'#1a1a1a'}" onclick="switchDay(${wi})">
+      <div class="week-btn-day" style="color:${active?'rgba(255,255,255,0.8)':'#444'}">${wd.day.slice(0,3).toUpperCase()}</div>
+      <div class="week-btn-emoji">${wd.emoji}</div>
+      <div class="week-btn-label" style="color:${active?'rgba(255,255,255,0.6)':'#333'}">${label}</div>
+    </button>`;
+  });
+  html += `</div></div>`;
+
+  // Principles
+  html += `<div class="principles"><div class="section-eyebrow">Programme Principles</div>`;
+  PRINCIPLES.forEach(([t,n], pi) => {
+    const val = lsGet(princKey(pi)) || n;
+    if (editMode) {
+      html += `<div class="principle">
+        <div class="principle-edit-wrap">
+          <div class="principle-title">${t}</div>
+          <div class="principle-note" id="princ_${pi}_display">${val}</div>
+          <button class="editable-tap" onclick="startFieldEdit('princ_${pi}')">✎</button>
+        </div>
+        <div id="princ_${pi}_edit" style="display:none">
+          <textarea class="principle-textarea" id="princ_${pi}_ta" rows="3">${esc(val)}</textarea>
+          <div class="edit-actions"><button class="edit-save-btn" onclick="saveField('princ','${pi}','princ_${pi}_ta')">Save</button><button class="edit-cancel-btn" onclick="cancelFieldEdit('princ_${pi}')">Cancel</button></div>
+        </div>
+      </div>`;
+    } else {
+      html += `<div class="principle"><div class="principle-title">${t}</div><div class="principle-note">${val}</div></div>`;
+    }
+  });
+  html += `</div>`;
+
+  content.innerHTML = html;
+
+  // Re-focus weight input if editing
+  if (window._wtEditing) {
+    const inp = document.getElementById('wi_' + window._wtEditing);
+    if (inp) { inp.focus(); inp.select(); }
+  }
+  // Re-focus edit inputs
+  if (editingEx) {
+    const inp = document.getElementById(`ename_${editingEx.si}_${editingEx.listIdx}`);
+    if (inp) inp.focus();
+  }
+  if (addingTo !== null) {
+    const inp = document.getElementById(`add_name_${addingTo}`);
+    if (inp) inp.focus();
+  }
+}
+
+function esc(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Navigation ─────────────────────────────────────────────────────────
+function toggleSection(key) {
+  expandedSections[key] = expandedSections[key]===false ? true : false;
+  editingEx=null; addingTo=null;
+  renderContent();
+}
+
+function switchDay(i) {
+  activeDay=i; expandedSections={}; editingEx=null; addingTo=null;
+  render();
+}
+
+function toggleEditMode() {
+  editMode=!editMode; editingEx=null; addingTo=null;
+  render();
+}
+
+// ── Weight tracking ────────────────────────────────────────────────────
+function startWtEdit(k) { window._wtEditing=k; renderContent(); }
+
+function saveWt(k) {
+  const inp = document.getElementById('wi_'+k);
+  const val = inp ? inp.value.trim() : '';
+  if (val) lsSet(k, val); else lsDel(k);
+  window._wtEditing=null; renderContent();
+}
+
+function wtKeydown(e, k) {
+  if (e.key==='Enter') saveWt(k);
+  if (e.key==='Escape') { window._wtEditing=null; renderContent(); }
+}
+
+// ── Edit exercises ─────────────────────────────────────────────────────
+function startExEdit(si, listIdx) {
+  editingEx={si, listIdx}; addingTo=null; renderContent();
+}
+
+function cancelEdit() { editingEx=null; renderContent(); }
+
+function saveExEdit(si, listIdx, ei) {
+  const name = (document.getElementById(`ename_${si}_${listIdx}`)?.value||'').trim();
+  const sets = (document.getElementById(`esets_${si}_${listIdx}`)?.value||'').trim();
+  const note = (document.getElementById(`enote_${si}_${listIdx}`)?.value||'').trim();
+  if (!name) return;
+
+  if (ei >= 10000) {
+    // It's an added exercise — update in the add list
+    const raw = lsGet(addKey(activeDay,si));
+    let arr = [];
+    try { arr=JSON.parse(raw)||[]; } catch(e){}
+    const idx = ei - 10000;
+    if (arr[idx]) arr[idx] = {name,sets,note};
+    lsSet(addKey(activeDay,si), JSON.stringify(arr));
+  } else {
+    lsSet(lsKey(activeDay,si,ei), JSON.stringify({name,sets,note}));
+  }
+  editingEx=null; renderContent();
+}
+
+function deleteEx(si, listIdx, ei) {
+  if (ei >= 10000) {
+    const raw = lsGet(addKey(activeDay,si));
+    let arr = [];
+    try { arr=JSON.parse(raw)||[]; } catch(e){}
+    arr.splice(ei-10000, 1);
+    if (arr.length) lsSet(addKey(activeDay,si), JSON.stringify(arr));
+    else lsDel(addKey(activeDay,si));
+    // Rebuild order without this item
+    const exList = sectionExercises(activeDay, si);
+    const newList = exList.filter(e => e._ei !== ei);
+    saveOrder(activeDay, si, newList);
+  } else {
+    lsSet(delKey(activeDay,si,ei), '1');
+    const exList = sectionExercises(activeDay, si);
+    const newList = exList.filter(e => e._ei !== ei);
+    saveOrder(activeDay, si, newList);
+  }
+  editingEx=null; renderContent();
+}
+
+// ── Add exercises ──────────────────────────────────────────────────────
+function startAdd(si) { addingTo=si; editingEx=null; renderContent(); }
+function cancelAdd()  { addingTo=null; renderContent(); }
+
+function confirmAdd(si) {
+  const name = (document.getElementById(`add_name_${si}`)?.value||'').trim();
+  const sets = (document.getElementById(`add_sets_${si}`)?.value||'').trim();
+  const note = (document.getElementById(`add_note_${si}`)?.value||'').trim();
+  if (!name) return;
+  const raw = lsGet(addKey(activeDay,si));
+  let arr = [];
+  try { arr=JSON.parse(raw)||[]; } catch(e){}
+  arr.push({name,sets:sets||'—',note});
+  lsSet(addKey(activeDay,si), JSON.stringify(arr));
+  addingTo=null; renderContent();
+}
+
+// ── Drag to reorder (touch) ────────────────────────────────────────────
+function dragStart(e, si, listIdx) {
+  const exList = sectionExercises(activeDay, si);
+  dragState = { si, listIdx, startY: e.touches[0].clientY, exList: [...exList], currentIdx: listIdx };
+  e.target.closest('.ex-row').style.opacity = '0.5';
+  e.stopPropagation();
+}
+
+function dragMove(e) {
+  if (!dragState) return;
+  e.preventDefault();
+  const y = e.touches[0].clientY;
+  const dy = y - dragState.startY;
+  const rowHeight = 56;
+  const steps = Math.round(dy / rowHeight);
+  const newIdx = Math.max(0, Math.min(dragState.exList.length-1, dragState.listIdx + steps));
+  if (newIdx !== dragState.currentIdx) {
+    dragState.currentIdx = newIdx;
+    // Visual feedback: reorder DOM temporarily
+    const list = document.getElementById(`exlist_${dragState.si}`);
+    if (list) {
+      const rows = Array.from(list.querySelectorAll('.ex-row'));
+      rows.forEach((r,i) => r.style.background = i===newIdx ? '#1a1a1a' : '');
+    }
+  }
+}
+
+function dragEnd(e, si) {
+  if (!dragState) return;
+  const y = e.changedTouches[0].clientY;
+  const dy = y - dragState.startY;
+  const rowHeight = 56;
+  const steps = Math.round(dy / rowHeight);
+  const newIdx = Math.max(0, Math.min(dragState.exList.length-1, dragState.listIdx + steps));
+
+  if (newIdx !== dragState.listIdx) {
+    const arr = [...dragState.exList];
+    const [moved] = arr.splice(dragState.listIdx, 1);
+    arr.splice(newIdx, 0, moved);
+    saveOrder(activeDay, si, arr);
+  }
+
+  dragState = null;
+  renderContent();
+}
+
+// ── Field editing (back note, section notes, principles) ──
+function startFieldEdit(id) {
+  const editDiv = document.getElementById(`${id}_edit`);
+  const displayDiv = document.getElementById(`${id}_display`);
+  if (editDiv) editDiv.style.display = 'block';
+  if (displayDiv) displayDiv.style.display = 'none';
+  const ta = document.getElementById(`${id}_ta`);
+  if (ta) { ta.focus(); ta.selectionStart = ta.value.length; }
+}
+
+function cancelFieldEdit(id) {
+  const editDiv = document.getElementById(`${id}_edit`);
+  const displayDiv = document.getElementById(`${id}_display`);
+  if (editDiv) editDiv.style.display = 'none';
+  if (displayDiv) displayDiv.style.display = '';
+}
+
+function saveField(type, id, taId) {
+  const ta = document.getElementById(taId);
+  const val = ta ? ta.value.trim() : '';
+  if (type === 'backnote') {
+    const di = parseInt(id);
+    if (val) lsSet(backNoteKey(di), val); else lsDel(backNoteKey(di));
+  } else if (type === 'secnote') {
+    const [di, si] = id.split('_').map(Number);
+    if (val) lsSet(secNoteKey(di,si), val); else lsDel(secNoteKey(di,si));
+  } else if (type === 'princ') {
+    const pi = parseInt(id);
+    if (val) lsSet(princKey(pi), val); else lsDel(princKey(pi));
+  }
+  renderContent();
+}
+
+// ── Init ───────────────────────────────────────────────────────────────
+window._wtEditing = null;
+render();
+</script>
+</body>
+</html>
