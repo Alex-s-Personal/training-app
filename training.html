@@ -141,6 +141,11 @@
     <div id="day-tabs"></div>
   </div>
   <div id="content"></div>
+  <div id="backup-bar" style="display:flex;gap:10px;justify-content:center;padding:20px 16px 40px;">
+    <button class="edit-toggle off" onclick="exportData()">Export backup</button>
+    <button class="edit-toggle off" onclick="document.getElementById('import-file').click()">Import backup</button>
+    <input type="file" id="import-file" accept=".json,application/json" style="display:none" onchange="importData(this)">
+  </div>
 </div>
 
 <script>
@@ -849,6 +854,41 @@ function saveField(type, id, taId) {
     if (val) lsSet(princKey(pi), val); else lsDel(princKey(pi));
   }
   renderContent();
+}
+
+// ── Backup / restore ───────────────────────────────────────────────────
+function exportData() {
+  const data = {};
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k.startsWith(NS)) data[k] = localStorage.getItem(k);
+    }
+  } catch(e) { alert('Could not read saved data.'); return; }
+  const blob = new Blob([JSON.stringify({app:'training', ns:NS, data}, null, 1)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'training-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function importData(input) {
+  const f = input.files && input.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const obj = JSON.parse(r.result);
+      if (!obj || obj.app !== 'training' || typeof obj.data !== 'object') throw 0;
+      const keys = Object.keys(obj.data).filter(k => k.startsWith(NS));
+      if (!confirm('Restore ' + keys.length + ' saved items? This overwrites matching entries on this device.')) return;
+      keys.forEach(k => localStorage.setItem(k, String(obj.data[k])));
+      render();
+      alert('Backup restored.');
+    } catch(e) { alert('That file is not a valid training backup.'); }
+  };
+  r.readAsText(f);
+  input.value = '';
 }
 
 // ── Init ───────────────────────────────────────────────────────────────
