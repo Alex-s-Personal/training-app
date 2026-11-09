@@ -155,7 +155,7 @@ const ACCENT = {
 };
 const TRACKABLE_TYPES = ["push", "pull", "legs"];
 
-const WARMUP = {title:"Warm-up (15 min)",note:"Every session. Mobility first, then the back activation, so your back is switched on before the strength work. Keep the activation easy, it should prime you, not tire you.",exercises:[
+const WARMUP = {title:"Warm-up (15 min)",note:"Every session. Mobility first, then the back activation, so your back is switched on before the strength work. Keep the activation easy, it should prime you, not tire you. The heavier work comes in the cool-down.",exercises:[
   {name:"Weight-Bearing Wrist Rocks",sets:"2×20s",note:"Hands flat on the floor, rock slowly forward and back."},
   {name:"Shoulder Dislocates",sets:"2×10",note:"Band or broomstick, wide grip, slow."},
   {name:"Cat-Cow",sets:"1×8",note:"One vertebra at a time. Settles the back."},
@@ -169,12 +169,16 @@ const WARMUP = {title:"Warm-up (15 min)",note:"Every session. Mobility first, th
   {name:"Deep Squat Hold",sets:"2×30s",note:"Heels flat, chest up."},
   {name:"Scap Pull-ups",sets:"1×8",note:"Straight arms. Depress and elevate the shoulders only."},
 ]};
-const COOLDOWN = {title:"Cool-down (6 min)",note:"Back prehab first, then stretch while warm.",exercises:[
+const COOLDOWN = {title:"Cool-down (12 min)",note:"Back extensions and stretches while warm, then the back rehab. This is where the stabilisers get their real work, so do not skip it.",exercises:[
   {name:"Back Extensions",sets:"2×10",note:"Controlled. Do not hyperextend at the top."},
   {name:"Hamstring Toe Touch Hold",sets:"45s",note:"Hold and breathe, no bouncing."},
   {name:"Hip Flexor Lunge",sets:"45s each",note:"Squeeze the glute of the back leg."},
   {name:"Pigeon Pose",sets:"45s each",note:""},
   {name:"Calf Stretch",sets:"30s each",note:"Straight knee, then bent knee."},
+  {name:"Shoulder Bridge 2 (Leg Lifts)",sets:"2×6 each",note:"Back rehab from your physio. Lift one leg to table top, do not let the pelvis tilt side to side."},
+  {name:"Dead Bug",sets:"2×8 each",note:"Back rehab. Lower back pressed into the floor. Stop the rep if it lifts."},
+  {name:"Side Plank",sets:"2×25s each",note:"Back rehab. Body in a straight line, hips lifted."},
+  {name:"Curl-up (Hands Under Lower Back)",sets:"2×6",note:"Back rehab. One knee bent, 5s hold. Lift head and shoulders only, do not flex the spine."},
 ]};
 const clone = s => JSON.parse(JSON.stringify(s));
 
@@ -209,13 +213,11 @@ const schedule = [
     why:"Optional. Skip it without guilt if the week is busy; Sunday's run is the one that matters.",
     backNote:"If the back is acutely bad, walk instead.",
     sections:[
-      {title:"Run Warm-up (16 min)",note:"",exercises:[
+      {title:"Run Warm-up (14 min)",note:"",exercises:[
         {name:"Easy Jog",sets:"10 min",note:"HR under 141bpm."},
         {name:"Dynamic Leg Swings",sets:"2×10 each",note:"Front to back, then side to side."},
         {name:"Knee Folds",sets:"1×6 each",note:"Back activation before you run. Pelvis stays still."},
         {name:"Glute Bridge",sets:"1×8",note:"Back activation before you run. Squeeze the glutes at the top."},
-        {name:"Clamshells",sets:"1×12 each",note:"Back activation before you run. Feet together, rotate from the hip, pelvis stays still."},
-        {name:"Side Plank",sets:"1×20s each",note:"Back activation before you run. Body in a straight line, hips lifted."},
         {name:"Strides",sets:"4×50m",note:"Build to 80% pace."},
       ]},
       {title:"Main Run (20 to 25 min)",note:"Alternate tempo and hills week to week.",exercises:[
@@ -223,10 +225,12 @@ const schedule = [
         {name:"Week B: Hill Repeats",sets:"6–8×30s",note:"Hard uphill, walk down as recovery."},
         {name:"Daylight Option: 100m Sprints",sets:"4–6×100m",note:"100% effort, 5+ min full recovery. Only when it is light."},
       ]},
-      {title:"Post-Run Stretch (5 min)",note:"",exercises:[
+      {title:"Post-Run Stretch (8 min)",note:"",exercises:[
         {name:"Hamstring Toe Touch Hold",sets:"45s",note:""},
         {name:"Hip Flexor Lunge",sets:"45s each",note:""},
         {name:"Calf Stretch",sets:"30s each",note:"Straight knee, then bent knee."},
+        {name:"Clamshells",sets:"2×12 each",note:"Back rehab. Feet together, rotate from the hip, pelvis stays still."},
+        {name:"Side Plank",sets:"1×25s each",note:"Back rehab. Body in a straight line, hips lifted."},
       ]},
     ]
   },
@@ -312,23 +316,23 @@ const schedule = [
     why:"Fixed session. Your aerobic base is the weakest link, and the weekend gives you daylight.",
     backNote:"If the back is acutely bad, walk the same duration instead.",
     sections:[
-      {title:"Run Prep (10 min)",note:"",exercises:[
+      {title:"Run Prep (7 min)",note:"",exercises:[
         {name:"Ankle Circles",sets:"2×10 each",note:"Both directions."},
         {name:"Calf Stretch",sets:"2×30s each",note:"Straight knee, then bent knee."},
         {name:"Knee Folds",sets:"1×6 each",note:"Back activation before you run. Pelvis stays still."},
         {name:"Glute Bridge",sets:"1×8",note:"Back activation before you run. Squeeze the glutes at the top."},
-        {name:"Clamshells",sets:"1×12 each",note:"Back activation before you run. Feet together, rotate from the hip, pelvis stays still."},
-        {name:"Side Plank",sets:"1×20s each",note:"Back activation before you run. Body in a straight line, hips lifted."},
         {name:"Easy Walk",sets:"5 min",note:"Before you start running."},
       ]},
       {title:"Zone 2 Run (45 to 60 min)",note:"141 to 156bpm. Nasal breathing is your guide.",exercises:[
         {name:"Steady Run",sets:"45–60 min",note:"Flat route. If HR passes 156bpm, slow down or walk briefly."},
       ]},
-      {title:"Post-Run Stretch (6 min)",note:"",exercises:[
+      {title:"Post-Run Stretch (9 min)",note:"",exercises:[
         {name:"Hamstring Toe Touch Hold",sets:"45s",note:""},
         {name:"Hip Flexor Lunge",sets:"45s each",note:""},
         {name:"Pigeon Pose",sets:"45s each",note:""},
         {name:"Calf Stretch",sets:"30s each",note:""},
+        {name:"Clamshells",sets:"2×12 each",note:"Back rehab. Feet together, rotate from the hip, pelvis stays still."},
+        {name:"Side Plank",sets:"1×25s each",note:"Back rehab. Body in a straight line, hips lifted."},
       ]},
     ]
   },
